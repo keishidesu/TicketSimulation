@@ -1,10 +1,18 @@
 function Output = LastCustomer(CounterOp,counter)
     % CounterOp: CustomerCounterDistribute
     % counter: number of counter
-    for i = (size(CounterOp,1)-1):-1:1
+    notFound = 0;
+    for i = size(CounterOp,1)-1:-1:1     %%% size() - 1 to exclude itself
         if(CounterOp(i,3) == counter)
-            Output = CounterOp(i,5); % returns the service time
-            break
+        	if CounterOp(i,6) > 0
+        		notFound = 1;
+        		Output = CounterOp(i,6); %%% returns the service ending time of same counter but previous customer
+          		break;
+        	end
         end
+    end
+
+    if notFound == 0
+    	Output = 0;
     end
     

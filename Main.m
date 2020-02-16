@@ -20,7 +20,6 @@ function Main()
     
     
     while(1)
-
         printf('1: LCG\n');
         printf('2: Exponential Distribution\n');
         printf('3: Uniform Distrubution\n');
@@ -33,7 +32,8 @@ function Main()
             printf('Invalid number input, please try again\n');
         end
     end
-    
+
+    numOfBreak = 6; 
 
     %LCG
     if Generatortype == 1
@@ -43,6 +43,7 @@ function Main()
         RanTicketType = mod(randLCG(round(rand(1,3)*100),165,numOfPeople),99)+1;
         RanMembership = mod(randLCG(round(rand(1,3)*10),13,numOfPeople),9)+1;
         RanNumberOfTicketPurchased = mod(randLCG(round(rand(1,3)*100),199,numOfPeople),99)+1;
+        RanCasherBreak = mod(randLCG(round(rand(1,3)*100),123,numOfBreak),99)+1;
         
     %Exponential     
     elseif Generatortype == 2
@@ -52,6 +53,8 @@ function Main()
         RanTicketType = mod(round(randexp(100*ones(1,numOfPeople))),99)+1;
         RanMembership = mod(round(randexp(100*ones(1,numOfPeople))),9)+1;
         RanNumberOfTicketPurchased = mod(round(100*randexp(ones(1,numOfPeople))),99)+1;
+
+        RanCasherBreak = mod(round(100*randexp(ones(1,numOfBreak))),99)+1;
     
     %Uniform    
     elseif Generatortype == 3
@@ -61,6 +64,9 @@ function Main()
         RanTicketType = randi(zeros(1,numOfPeople), 100*ones(1,numOfPeople));
         RanMembership = randi(zeros(1,numOfPeople), 10*ones(1,numOfPeople));
         RanNumberOfTicketPurchased = randi(zeros(1,numOfPeople), 100*ones(1,numOfPeople));
+
+        RanCasherBreak = randi(zeros(1,numOfBreak), 100*ones(1,numOfBreak));
+
     end
     
     printf('\nThe random numbers for inter-arrival time are: \n');
@@ -93,17 +99,22 @@ function Main()
     printf('%d ',RanNumberOfTicketPurchased);
     printf('\n--------------------------------------------------------------------------------------------------------------------------------------\n');
     
-
-    Counter1 = [3, 0.2 ;
-                4, 0.3 ;
-                5, 0.3 ;
-                6, 0.2 ];
+    printf('\nThe random numbers for casher break time are: \n');
+    printf('--------------------------------------------------------------------------------------------------------------------------------------\n');
+    printf('%d ',RanCasherBreak);
+    printf('\n--------------------------------------------------------------------------------------------------------------------------------------\n');
     
-    Counter2 = [4, 0.35;
-                5, 0.25;
+
+    Counter1 = [6, 0.1 ;
+                7, 0.1 ;
+                8, 0.2 ;
+                9, 0.6 ];
+    
+    Counter2 = [4, 0.1;
+                5, 0.1;
                 6, 0.2;
-                7, 0.1;
-                8, 0.1];
+                7, 0.25;
+                8, 0.35];
 
     Counter3 = [2, 0.3;
                 3, 0.28;
@@ -117,9 +128,10 @@ function Main()
                 8, 0.15];
 
     tableInterarrival = [];
-    for i = 1:8
+    max = 4;
+    for i = 1:max
         tableInterarrival(i,1) = i;
-        tableInterarrival(i,2) = 0.125;
+        tableInterarrival(i,2) = 1/max;
     end
 
     TicketDay =     [1, 0.55;
@@ -135,19 +147,31 @@ function Main()
                      2, 0.60;
                      3, 0.25];
 
-    % Printing information tables & reasign CDF
+    RanCasherBreakTime = []; %%%To store time spent
+    casherBreak = [6, 0.4; 
+                   7, 0.25;
+                   8, 0.15;
+                   9, 0.1;
+                   10, 0.1];
+
+
+    % Printing information tables & re-asign CDF
     Ticket = InitTicket();
     Counter1 = DisplayTable(Counter1,'Counter 1(Non-member)','Service Time', 100);
     Counter2 = DisplayTable(Counter2,'Counter 2(Non-member)','Service Time', 100);
     Counter3 = DisplayTable(Counter3,'Counter 3(Non-member)','Service Time', 100);
     Counter4 = DisplayTable(Counter4,'Counter 4(Non-member)','Service Time', 100);
-    InterArrivalTime = DisplayTable(tableInterarrival, 'Interarrival Time' , 'Inte-Arr Time' , 100 );
+    InterArrivalTime = DisplayTable(tableInterarrival, 'Interarrival Time' , 'Inte-Arr Time' , 1000 );
     TicketDay = DisplayTable(TicketDay, 'Ticket Day Table', 'Ticket Day ', 100);
     TypeOfTicket = DisplayTable(TypeOfTicket, 'Ticket Type Table', 'Ticket Type ', 100);
     Membership = DisplayTable(Membership, 'Membership Table', 'Membership ', 100);
     NumberOfTicket = DisplayTable(NumberOfTicket, 'Number of Ticket Purcharsed Table(n)', 'Num of Ticket', 10);
+    casherBreak = DisplayTable(casherBreak, 'Casher Break Time', 'Time Spent ', 100);
+
     TicketCount = InitTicketCount();    
     
+    
+
     % Database: [IAT, Arr, Day, Type, Member, No, Paid]
     Database = [];
     for i = 1:numOfPeople
@@ -157,30 +181,30 @@ function Main()
         else
             for j = 1:8
                 if(RanInterArrival(i-1) <= (InterArrivalTime(j,3))*1000)
-                    Database(i,1) = InterArrivalTime(j,1);
+                    Database(i,1) = InterArrivalTime(j,1);          %%%%% Interarrival Time
                     break
                 end
             end
-            Database(i,2) = Database(i,1) + Database(i-1,2);
+            Database(i,2) = Database(i,1) + Database(i-1,2);        %%%%% Arrival Time
         end
         
         for d = 1:2
             if(RanTicketDay(i) <= (TicketDay(d,3))*100)
-                Database(i,3) = TicketDay(d,1);
+                Database(i,3) = TicketDay(d,1);                     %%%%% Random TicketDay
                 break
             end
         end
         
         for t = 1:2
             if(RanTicketType(i) <= (TypeOfTicket(t,3))*100)
-                Database(i,4) = TypeOfTicket(t,1);
+                Database(i,4) = TypeOfTicket(t,1);                  %%%%% Random Type Ticket
                 break
             end
         end
         
         for m = 1:2
             if(RanMembership(i) <= (Membership(m,3))*10)
-                Database(i,5) = Membership(m,1);
+                Database(i,5) = Membership(m,1);                    %%%%% Membership
                 break
             end
         end
@@ -196,14 +220,28 @@ function Main()
                     Database(i,6) = TicketCount(Database(i,3),Database(i,4)); %smaller than 3
                     Database(i,7) = Database(i,6) * TicketCount(3,Database(i,4));
                 end
+                break                                               %%%%% Number ticket Purcharsed
+            end                                                     %%%%% Paid
+        end        
+    end
+
+    for i = 1:numOfBreak
+        for b = 1:5
+            if(RanCasherBreak(i) <= (casherBreak(b,3))*100)
+
+                %% Random Time Spent by Casher to take break
+                RanCasherBreakTime(i,1) = casherBreak(b,1);  
+
+                %% After Which Customer left the counter       
+                RanCasherBreakTime(i,2) = mod(round(100*randexp(ones(1,numOfBreak))),98)+2;    %%Start from 2nd 
                 break
             end
-        end        
+        end
     end
     
     TicketsSoldTable(numOfPeople,Database,RanInterArrival,RanTicketDay,RanTicketType);
     
-    CounterOperation(numOfPeople,Database,Counter1,Counter2,Counter3,Counter4,RanServiceTime);
+    CounterOperation(numOfPeople,Database,Counter1,Counter2,Counter3,Counter4,RanServiceTime, RanCasherBreakTime);
     
     RemainingTicketTable(TicketCount);
     
